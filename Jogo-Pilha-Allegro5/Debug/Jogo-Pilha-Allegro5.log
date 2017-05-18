@@ -1,4 +1,6 @@
 ﻿  main.cpp
-c:\users\lordr\desktop\jogo-pilha-allegro5\jogo-pilha-allegro5\main.cpp(894): warning C4715: 'menu': nem todos os caminhos de controle retornam um valor
+c:\users\lordr\desktop\jogo-pilha-allegro5\jogo-pilha-allegro5\main.cpp(237): warning C4715: 'tela_resultado_vitoria': nem todos os caminhos de controle retornam um valor
+c:\users\lordr\desktop\jogo-pilha-allegro5\jogo-pilha-allegro5\main.cpp(289): warning C4715: 'tela_resultado_derrota': nem todos os caminhos de controle retornam um valor
+c:\users\lordr\desktop\jogo-pilha-allegro5\jogo-pilha-allegro5\main.cpp(1112): warning C4715: 'menu': nem todos os caminhos de controle retornam um valor
   Jogo-Pilha-Allegro5.vcxproj -> C:\Users\lordr\Desktop\Jogo-Pilha-Allegro5\Debug\Jogo-Pilha-Allegro5.exe
   Jogo-Pilha-Allegro5.vcxproj -> C:\Users\lordr\Desktop\Jogo-Pilha-Allegro5\Debug\Jogo-Pilha-Allegro5.pdb (Partial PDB)

@@ -83,10 +83,17 @@ ALLEGRO_BITMAP *cobertura3 = NULL;
 ALLEGRO_BITMAP *cobertura4 = NULL;
 ALLEGRO_BITMAP *cobertura5 = NULL;
 
+ALLEGRO_BITMAP *ganhou1 = NULL;
+ALLEGRO_BITMAP *ganhou2 = NULL;
+ALLEGRO_BITMAP *ganhou3 = NULL;
+ALLEGRO_BITMAP *perdeu1 = NULL;
+ALLEGRO_BITMAP *perdeu2 = NULL;
+
 ALLEGRO_BITMAP *cenario_vazio = NULL;
 ALLEGRO_BITMAP *cenario = NULL;
 
 ALLEGRO_BITMAP *tela_bolo_modelo = NULL;
+
 
 //Controle de telas
 enum{inicio,menu_jogo,jogar,instrucoes,creditos,sair};
@@ -110,11 +117,14 @@ void imprime_elemento_cobertura(Pilha pilha);
 void gerador_bolo_modelo(Pilha &pilha);
 void imprime_bolo(Pilha &pilha);
 int tempo_random();
-void captura_bolo(Pilha &pilha);
+void captura_bolo(Pilha &pilha, int tempo);
+bool IgualPilha(Pilha p1, Pilha p2, float &contador);
+int tela_resultado_vitoria(bool resultado, float &porcentagem, Pilha pilha_gera, Pilha pilha_jogo);
+int tela_resultado_derrota(bool resultado, float &porcentagem, Pilha pilha_gera, Pilha pilha_jogo);
 // ______________________________
 
 int main(int argc, char **argv) {
-
+	bool resultado;
 	Pilha pilha_gera;
 	Pilha pilha_jogo;
 
@@ -127,11 +137,25 @@ int main(int argc, char **argv) {
 		return 0;
 	}
 	while (estado == inicio) {
+		al_clear_to_color(al_map_rgb(0, 0, 0));
+		al_flip_display();
+		float porcentagem = 0;
 		opcao = menu();
 		if (opcao == jogar) {
 			int tempo = tempo_random();
-			gera_mostra_pronto(1, pilha_gera);
-			captura_bolo(pilha_jogo);
+			gera_mostra_pronto(5, pilha_gera); // posso mudar o tempo 
+			captura_bolo(pilha_jogo, 5); //posso mudar o tempo
+			resultado = IgualPilha(pilha_gera, pilha_jogo, porcentagem);
+			if (resultado) {
+				opcao = tela_resultado_vitoria(resultado, porcentagem, pilha_gera, pilha_jogo);
+				al_clear_to_color(al_map_rgb(0, 0, 0));
+				al_flip_display();
+			}
+			else {
+				opcao = tela_resultado_derrota(resultado, porcentagem, pilha_gera, pilha_jogo);
+				al_clear_to_color(al_map_rgb(0, 0, 0));
+				al_flip_display();
+			}
 		}
 		else if (opcao == creditos)
 			credito();
@@ -147,100 +171,219 @@ int main(int argc, char **argv) {
 
 ///*
 //FUNÇÕES PRINCIPAIS
-void captura_bolo(Pilha &pilha) {
+int tela_resultado_vitoria(bool resultado, float &porcentagem, Pilha pilha_gera, Pilha pilha_jogo) {
+	int sair_resultado = 0;
+	int valor;
 	bool ok;
-	int sair_captura = 0;
-	int tempo = 23;
-	bool flag1 = false, flag2 = false, flag3 = false, flag4 = false;
-	bool iflag1 = false, iflag2 = false, iflag3 = false, iflag4 = false, iflag5 = false;
-		al_flip_display();
-		al_draw_scaled_bitmap(cenario, 0, 0, 800, 600, 0, 0, al_get_display_width(janela), al_get_display_height(janela), 0);
-		al_flip_display();
-		al_register_event_source(eventos_fila, al_get_mouse_event_source());
+	al_draw_scaled_bitmap(ganhou1, 0, 0, 800, 600, 0, 0, al_get_display_width(janela), al_get_display_height(janela), 0);
+	al_draw_textf(fonte, al_map_rgb(240, 0, 0), 530, 420, ALLEGRO_ALIGN_CENTRE, "%f", porcentagem);
+	al_flip_display();
+	al_register_event_source(eventos_fila, al_get_mouse_event_source());
 
-	while (tempo != 0)
+	while (!sair_resultado)
 	{
-		al_register_event_source(eventos_fila, al_get_timer_event_source(timer));
-
-		al_start_timer(timer);
 		while (!al_is_event_queue_empty(eventos_fila))
 		{
 			ALLEGRO_EVENT evento;
 			al_wait_for_event(eventos_fila, &evento);
 
-			if (evento.type == ALLEGRO_EVENT_MOUSE_BUTTON_UP)
+			if (evento.type == ALLEGRO_EVENT_MOUSE_AXES)
 			{
 
-				if (evento.mouse.x >= 0 && evento.mouse.x <= 200 && evento.mouse.y >= 400 && evento.mouse.y <= 600 && !flag1)
+				if (evento.mouse.x >= 500 && evento.mouse.x <= 620 && evento.mouse.y >= 550 && evento.mouse.y <= 590)
 				{
-					//Lugar baixo
-					if (evento.mouse.x >= 20 && evento.mouse.x <= 90 && evento.mouse.y >= 420 && evento.mouse.y <= 460) {
-						al_draw_rectangle(20, 420, 90, 460, al_map_rgb(240, 0, 0), 7);
-						flag1 = true;
-						pilha.Empilha(4,ok);
-					}
-					else if (evento.mouse.x >= 110 && evento.mouse.x <= 190 && evento.mouse.y >= 420 && evento.mouse.y <= 460) {
-						al_draw_rectangle(110, 420, 190, 460, al_map_rgb(240, 0, 0), 7);
-						al_flip_display();
-						flag1 = true;
-						pilha.Empilha(1, ok);
-					}
-					else if (evento.mouse.x >= 60 && evento.mouse.x <= 140 && evento.mouse.y >= 480 && evento.mouse.y <= 520) {
-						al_draw_rectangle(60, 480, 140, 520, al_map_rgb(240, 0, 0), 7);
-						al_flip_display();
-						flag1 = true;
-						pilha.Empilha(0, ok);
-					}
-					else if (evento.mouse.x >= 20 && evento.mouse.x <= 90 && evento.mouse.y >= 540 && evento.mouse.y <= 580) {
-						al_draw_rectangle(20, 540, 90, 580, al_map_rgb(240, 0, 0), 7);
-						al_flip_display();
-						flag1 = true;
-						pilha.Empilha(2, ok);
-					}
-					else if (evento.mouse.x >= 110 && evento.mouse.x <= 190 && evento.mouse.y >= 540 && evento.mouse.y <= 580) {
-						al_draw_rectangle(110, 540, 190, 580, al_map_rgb(240, 0, 0), 7);
-						al_flip_display();
-						flag1 = true;
-						pilha.Empilha(3, ok);
-					}
-					imprime_elemento_baixo(pilha);
+					al_draw_scaled_bitmap(ganhou2, 0, 0, 800, 600, 0, 0, al_get_display_width(janela), al_get_display_height(janela), 0);
+					al_draw_textf(fonte, al_map_rgb(240, 0, 0), 530, 420, ALLEGRO_ALIGN_CENTRE, "%f", porcentagem);
+					al_flip_display();
 				}
-				else if (evento.mouse.x > 200 && evento.mouse.x <= 400 && evento.mouse.y > 400 && evento.mouse.y <= 600 && !flag2)
+				else if (evento.mouse.x >= 640 && evento.mouse.x <= 780 && evento.mouse.y >= 550 && evento.mouse.y <= 590)
 				{
-					//Lugar recheio
-					if (evento.mouse.x >= 210 && evento.mouse.x <= 300 && evento.mouse.y >= 420 && evento.mouse.y <= 460) {
-						al_draw_rectangle(210, 420, 300, 460, al_map_rgb(240, 0, 0), 7);
-						flag2 = true;
-						pilha.Empilha(5, ok);
-					}
-					else if (evento.mouse.x >= 305 && evento.mouse.x <= 390 && evento.mouse.y >= 420 && evento.mouse.y <= 460) {
-						al_draw_rectangle(305, 420, 390, 460, al_map_rgb(240, 0, 0), 7);
-						al_flip_display();
-						flag2 = true;
-						pilha.Empilha(6, ok);
-					}
-					else if (evento.mouse.x >= 260 && evento.mouse.x <= 340 && evento.mouse.y >= 480 && evento.mouse.y <= 520) {
-						al_draw_rectangle(260, 480, 340, 520, al_map_rgb(240, 0, 0), 7);
-						al_flip_display();
-						flag2 = true;
-						pilha.Empilha(9, ok);
-					}
-					else if (evento.mouse.x >= 208 && evento.mouse.x <= 295 && evento.mouse.y >= 540 && evento.mouse.y <= 580) {
-						al_draw_rectangle(208, 540, 295, 580, al_map_rgb(240, 0, 0), 7);
-						al_flip_display();
-						flag2 = true;
-						pilha.Empilha(7, ok);
-					}
-					else if (evento.mouse.x >= 300 && evento.mouse.x <= 395 && evento.mouse.y >= 540 && evento.mouse.y <= 580) {
-						al_draw_rectangle(300, 540, 395, 580, al_map_rgb(240, 0, 0), 7);
-						al_flip_display();
-						flag2 = true;
-						pilha.Empilha(8, ok);
-					}
-					imprime_elemento_recheio(pilha);
+					al_draw_scaled_bitmap(ganhou3, 0, 0, 800, 600, 0, 0, al_get_display_width(janela), al_get_display_height(janela), 0);
+					al_draw_textf(fonte, al_map_rgb(240, 0, 0), 530, 420, ALLEGRO_ALIGN_CENTRE, "%f", porcentagem);
+					al_flip_display();
 				}
-				else if (evento.mouse.x > 400 && evento.mouse.x <= 600 && evento.mouse.y > 400 && evento.mouse.y <= 600 && !flag3) 
+				else
 				{
+					al_draw_scaled_bitmap(ganhou1, 0, 0, 800, 600, 0, 0, al_get_display_width(janela), al_get_display_height(janela), 0);
+					al_draw_textf(fonte, al_map_rgb(240, 0, 0), 530, 420, ALLEGRO_ALIGN_CENTRE, "%f", porcentagem);
+					al_flip_display();
+				}
+			}
+			// Ou se o evento foi um clique do mouse
+			else if (evento.type == ALLEGRO_EVENT_MOUSE_BUTTON_UP)
+			{
+				if (evento.mouse.x >= 500 && evento.mouse.x <= 620 && evento.mouse.y >= 550 && evento.mouse.y <= 590) {
+					al_clear_to_color(al_map_rgb(0, 0, 0));
+					al_flip_display();
+					sair_resultado = 1;
+
+					for (int i = 3; i >= 0; i--) {
+						pilha_gera.Desempilha(valor,ok);
+					}
+					for (int i = 3; i >= 0; i--) {
+						pilha_jogo.Desempilha(valor,ok);
+					}
+					return jogar;
+				}
+				else if (evento.mouse.x >= 640 && evento.mouse.x <= 780 && evento.mouse.y >= 550 && evento.mouse.y <= 590) {
+					al_clear_to_color(al_map_rgb(0, 0, 0));
+					al_flip_display();
+					sair_resultado = 1;
+					return inicio;
+				}
+			}
+		}
+	}
+}
+
+int tela_resultado_derrota(bool resultado, float &porcentagem, Pilha pilha_gera, Pilha pilha_jogo) {
+	int sair_resultado = 0;
+	int valor;
+	bool ok;
+	al_draw_scaled_bitmap(perdeu1, 0, 0, 800, 600, 0, 0, al_get_display_width(janela), al_get_display_height(janela), 0);
+	al_draw_textf(fonte, al_map_rgb(240, 0, 0), 530, 420, ALLEGRO_ALIGN_CENTRE, "%f", porcentagem);
+	al_flip_display();
+	al_register_event_source(eventos_fila, al_get_mouse_event_source());
+
+	while (!sair_resultado)
+	{
+		while (!al_is_event_queue_empty(eventos_fila))
+		{
+			ALLEGRO_EVENT evento;
+			al_wait_for_event(eventos_fila, &evento);
+
+			if (evento.type == ALLEGRO_EVENT_MOUSE_AXES)
+			{
+
+				if (evento.mouse.x >= 650 && evento.mouse.x <= 780 && evento.mouse.y >= 540 && evento.mouse.y <= 590)
+				{
+					al_draw_scaled_bitmap(perdeu2, 0, 0, 800, 600, 0, 0, al_get_display_width(janela), al_get_display_height(janela), 0);
+					al_draw_textf(fonte, al_map_rgb(240, 0, 0), 530, 420, ALLEGRO_ALIGN_CENTRE, "%f", porcentagem);
+					al_flip_display();
+				}
+				else
+				{
+					al_draw_scaled_bitmap(perdeu1, 0, 0, 800, 600, 0, 0, al_get_display_width(janela), al_get_display_height(janela), 0);
+					al_draw_textf(fonte, al_map_rgb(240, 0, 0), 530, 420, ALLEGRO_ALIGN_CENTRE, "%f", porcentagem);
+					al_flip_display();
+				}
+			}
+			// Ou se o evento foi um clique do mouse
+			else if (evento.type == ALLEGRO_EVENT_MOUSE_BUTTON_UP)
+			{
+				if (evento.mouse.x >= 650 && evento.mouse.x <= 780 && evento.mouse.y >= 540 && evento.mouse.y <= 590) {
+					al_clear_to_color(al_map_rgb(0, 0, 0));
+					sair_resultado = 1;
+
+					for (int i = 3; i >= 0; i--) {
+						pilha_gera.Desempilha(valor, ok);
+					}
+					for (int i = 3; i >= 0; i--) {
+						pilha_jogo.Desempilha(valor, ok);
+					}
+				}
+				return inicio;
+			}
+		}
+	}
+}
+
+
+void captura_bolo(Pilha &pilha,int tempo) {
+	int desce = 0;
+	bool ok;
+	int sair_captura = 0;
+	bool flag1 = false, flag2 = false, flag3 = false, flag4 = false;
+	bool iflag1 = false, iflag2 = false, iflag3 = false, iflag4 = false, iflag5 = false;
+		al_draw_scaled_bitmap(cenario, 0, 0, 800, 600, 0, 0, al_get_display_width(janela), al_get_display_height(janela), 0);
+		al_flip_display();
+		al_register_event_source(eventos_fila, al_get_mouse_event_source());
+
+		while (tempo != 0)
+		{
+			al_register_event_source(eventos_fila, al_get_timer_event_source(timer));
+
+			al_start_timer(timer);
+
+
+			if (!al_is_event_queue_empty(eventos_fila))
+			{
+				ALLEGRO_EVENT evento;
+				al_wait_for_event(eventos_fila, &evento);
+
+				if (evento.type == ALLEGRO_EVENT_MOUSE_BUTTON_UP)
+				{
+
+					if (evento.mouse.x >= 0 && evento.mouse.x <= 200 && evento.mouse.y >= 400 && evento.mouse.y <= 600 && !flag1)
+					{
+						//Lugar baixo
+						if (evento.mouse.x >= 20 && evento.mouse.x <= 90 && evento.mouse.y >= 420 && evento.mouse.y <= 460) {
+							al_draw_rectangle(20, 420, 90, 460, al_map_rgb(240, 0, 0), 7);
+							flag1 = true;
+							pilha.Empilha(4, ok);
+						}
+						else if (evento.mouse.x >= 110 && evento.mouse.x <= 190 && evento.mouse.y >= 420 && evento.mouse.y <= 460) {
+							al_draw_rectangle(110, 420, 190, 460, al_map_rgb(240, 0, 0), 7);
+							al_flip_display();
+							flag1 = true;
+							pilha.Empilha(1, ok);
+						}
+						else if (evento.mouse.x >= 60 && evento.mouse.x <= 140 && evento.mouse.y >= 480 && evento.mouse.y <= 520) {
+							al_draw_rectangle(60, 480, 140, 520, al_map_rgb(240, 0, 0), 7);
+							al_flip_display();
+							flag1 = true;
+							pilha.Empilha(0, ok);
+						}
+						else if (evento.mouse.x >= 20 && evento.mouse.x <= 90 && evento.mouse.y >= 540 && evento.mouse.y <= 580) {
+							al_draw_rectangle(20, 540, 90, 580, al_map_rgb(240, 0, 0), 7);
+							al_flip_display();
+							flag1 = true;
+							pilha.Empilha(2, ok);
+						}
+						else if (evento.mouse.x >= 110 && evento.mouse.x <= 190 && evento.mouse.y >= 540 && evento.mouse.y <= 580) {
+							al_draw_rectangle(110, 540, 190, 580, al_map_rgb(240, 0, 0), 7);
+							al_flip_display();
+							flag1 = true;
+							pilha.Empilha(3, ok);
+						}
+						imprime_elemento_baixo(pilha);
+					}
+					else if (evento.mouse.x > 200 && evento.mouse.x <= 400 && evento.mouse.y > 400 && evento.mouse.y <= 600 && !flag2)
+					{
+						//Lugar recheio
+						if (evento.mouse.x >= 210 && evento.mouse.x <= 300 && evento.mouse.y >= 420 && evento.mouse.y <= 460) {
+							al_draw_rectangle(210, 420, 300, 460, al_map_rgb(240, 0, 0), 7);
+							flag2 = true;
+							pilha.Empilha(5, ok);
+						}
+						else if (evento.mouse.x >= 305 && evento.mouse.x <= 390 && evento.mouse.y >= 420 && evento.mouse.y <= 460) {
+							al_draw_rectangle(305, 420, 390, 460, al_map_rgb(240, 0, 0), 7);
+							al_flip_display();
+							flag2 = true;
+							pilha.Empilha(6, ok);
+						}
+						else if (evento.mouse.x >= 260 && evento.mouse.x <= 340 && evento.mouse.y >= 480 && evento.mouse.y <= 520) {
+							al_draw_rectangle(260, 480, 340, 520, al_map_rgb(240, 0, 0), 7);
+							al_flip_display();
+							flag2 = true;
+							pilha.Empilha(9, ok);
+						}
+						else if (evento.mouse.x >= 208 && evento.mouse.x <= 295 && evento.mouse.y >= 540 && evento.mouse.y <= 580) {
+							al_draw_rectangle(208, 540, 295, 580, al_map_rgb(240, 0, 0), 7);
+							al_flip_display();
+							flag2 = true;
+							pilha.Empilha(7, ok);
+						}
+						else if (evento.mouse.x >= 300 && evento.mouse.x <= 395 && evento.mouse.y >= 540 && evento.mouse.y <= 580) {
+							al_draw_rectangle(300, 540, 395, 580, al_map_rgb(240, 0, 0), 7);
+							al_flip_display();
+							flag2 = true;
+							pilha.Empilha(8, ok);
+						}
+						imprime_elemento_recheio(pilha);
+					}
+					else if (evento.mouse.x > 400 && evento.mouse.x <= 600 && evento.mouse.y > 400 && evento.mouse.y <= 600 && !flag3)
+					{
 						//Lugar cima
 						if (evento.mouse.x >= 410 && evento.mouse.x <= 480 && evento.mouse.y >= 420 && evento.mouse.y <= 460) {
 							al_draw_rectangle(410, 420, 480, 460, al_map_rgb(240, 0, 0), 7);
@@ -272,61 +415,105 @@ void captura_bolo(Pilha &pilha) {
 							pilha.Empilha(14, ok);
 						}
 						imprime_elemento_cima(pilha);
+					}
+					//else if (evento.mouse.x > 600 && evento.mouse.x <= 800 && evento.mouse.y >= 400 && evento.mouse.y <= 600 && !flag4) {
+					else if (evento.mouse.x > 600 && evento.mouse.x <= 800 && evento.mouse.y >= 400 && evento.mouse.y <= 600 && !flag4)
+					{
+						//Lugar cobertura
+						if (evento.mouse.x >= 610 && evento.mouse.x <= 695 && evento.mouse.y >= 420 && evento.mouse.y <= 460) {
+							al_draw_rectangle(610, 420, 695, 460, al_map_rgb(240, 0, 0), 7);
+							flag4 = true;
+							pilha.Empilha(19, ok);
+						}
+						else if (evento.mouse.x >= 700 && evento.mouse.x <= 790 && evento.mouse.y >= 420 && evento.mouse.y <= 460) {
+							al_draw_rectangle(700, 420, 790, 460, al_map_rgb(240, 0, 0), 7);
+							al_flip_display();
+							flag4 = true;
+							pilha.Empilha(17, ok);
+						}
+						else if (evento.mouse.x >= 650 && evento.mouse.x <= 745 && evento.mouse.y >= 480 && evento.mouse.y <= 520) {
+							al_draw_rectangle(650, 480, 745, 520, al_map_rgb(240, 0, 0), 7);
+							al_flip_display();
+							flag4 = true;
+							pilha.Empilha(18, ok);
+						}
+						else if (evento.mouse.x >= 610 && evento.mouse.x <= 690 && evento.mouse.y >= 540 && evento.mouse.y <= 580) {
+							al_draw_rectangle(610, 540, 690, 580, al_map_rgb(240, 0, 0), 7);
+							al_flip_display();
+							flag4 = true;
+							pilha.Empilha(18, ok);
+						}
+						else if (evento.mouse.x >= 700 && evento.mouse.x <= 790 && evento.mouse.y >= 540 && evento.mouse.y <= 580) {
+							al_draw_rectangle(700, 540, 790, 580, al_map_rgb(240, 0, 0), 7);
+							al_flip_display();
+							flag4 = true;
+							pilha.Empilha(15, ok);
+						}
+						imprime_elemento_cobertura(pilha);
+					}
 				}
-				//else if (evento.mouse.x > 600 && evento.mouse.x <= 800 && evento.mouse.y >= 400 && evento.mouse.y <= 600 && !flag4) {
-				else if (evento.mouse.x > 600 && evento.mouse.x <= 800 && evento.mouse.y >= 400 && evento.mouse.y <= 600 && !flag4) 
-				{
-					//Lugar cobertura
-					if (evento.mouse.x >= 610 && evento.mouse.x <= 695 && evento.mouse.y >= 420 && evento.mouse.y <= 460) {
-						al_draw_rectangle(610, 420, 695, 460, al_map_rgb(240, 0, 0), 7);
-						flag4 = true;
-						pilha.Empilha(19, ok);
-					}
-					else if (evento.mouse.x >= 700 && evento.mouse.x <= 790 && evento.mouse.y >= 420 && evento.mouse.y <= 460) {
-						al_draw_rectangle(700, 420, 790, 460, al_map_rgb(240, 0, 0), 7);
-						al_flip_display();
-						flag4 = true;
-						pilha.Empilha(17, ok);
-					}
-					else if (evento.mouse.x >= 650 && evento.mouse.x <= 745 && evento.mouse.y >= 480 && evento.mouse.y <= 520) {
-						al_draw_rectangle(650, 480, 745, 520, al_map_rgb(240, 0, 0), 7);
-						al_flip_display();
-						flag4 = true;
-						pilha.Empilha(18, ok);
-					}
-					else if (evento.mouse.x >= 610 && evento.mouse.x <= 690 && evento.mouse.y >= 540 && evento.mouse.y <= 580) {
-						al_draw_rectangle(610, 540, 690, 580, al_map_rgb(240, 0, 0), 7);
-						al_flip_display();
-						flag4 = true;
-						pilha.Empilha(18, ok);
-					}
-					else if (evento.mouse.x >= 700 && evento.mouse.x <= 790 && evento.mouse.y >= 540 && evento.mouse.y <= 580) {
-						al_draw_rectangle(700, 540, 790, 580, al_map_rgb(240, 0, 0), 7);
-						al_flip_display();
-						flag4 = true;
-						pilha.Empilha(15, ok);
-					}
-					imprime_elemento_cobertura(pilha);
-				}
+				al_flip_display();
 			}
-		}
-		//al_flip_display();
-		if (!al_is_event_queue_empty(timer_fila))
-		{
-			ALLEGRO_EVENT evento;
-			al_wait_for_event(timer_fila, &evento);
-
-			if (evento.type == ALLEGRO_EVENT_TIMER)
+			if (!al_is_event_queue_empty(timer_fila))
 			{
-				tempo--;
-			}
-		}
-		al_draw_scaled_bitmap(cenario_vazio ,0, 0, 800, 600, 0, 0, al_get_display_width(janela), al_get_display_height(janela), 0);
-		al_draw_textf(fonte, al_map_rgb(240, 0, 0), 710, 5, ALLEGRO_ALIGN_CENTRE, "%d", tempo);
+				ALLEGRO_EVENT evento;
+				al_wait_for_event(timer_fila, &evento);
 
-	}
+				if (evento.type == ALLEGRO_EVENT_TIMER)
+				{
+					tempo--;
+				}
+			}
+			//al_draw_scaled_bitmap(cenario, 0, 0, 800, 600, 0, 0, al_get_display_width(janela), al_get_display_height(janela), 0);
+			//al_draw_textf(fonte, al_map_rgb(240, 0, 0), 710, 5 + desce, ALLEGRO_ALIGN_CENTRE, "%d", tempo);	
+		}
 }
 //*/
+
+bool IgualPilha(Pilha p1, Pilha p2, float &contador)
+{
+	contador = 0;
+	int aux = 0;
+	bool flag1, flag2, auxStatus;
+	int elemento1, elemento2;
+	Pilha pilhaAux1, pilhaAux2;
+
+	auxStatus = true;
+
+	while ((p1.Vazia() == false) && (p2.Vazia() == false)) {
+		p1.Desempilha(elemento1, flag1);
+		p2.Desempilha(elemento2, flag2);
+		if (flag1 == true)
+			pilhaAux1.Empilha(elemento1, flag1);
+		if (flag2 == true)
+			pilhaAux2.Empilha(elemento2, flag2);
+		if ((flag1 == true) && (flag2 == false)) {
+			auxStatus = false;
+		}
+		if ((flag1 == false) && (flag2 == true)) {
+			auxStatus = false;
+		}
+		if ((flag1 == true) && (flag2 == true)) {
+			if (elemento1 != elemento2) {
+				auxStatus = false;
+				aux++;
+			}
+		}
+	}
+	while (pilhaAux1.Vazia() == false) {
+		pilhaAux1.Desempilha(elemento1, flag1);
+		p1.Empilha(elemento1, flag1);
+	}
+	while (pilhaAux2.Vazia() == false) {
+		pilhaAux2.Desempilha(elemento2, flag2);
+		p2.Empilha(elemento2, flag2);
+	}
+	contador = aux / 4.0;
+	if (auxStatus == true)
+		return true;
+	else
+		return false;
+}
 
 void imprime_elemento_cima(Pilha pilha){
 	int aux;
@@ -350,7 +537,7 @@ void imprime_elemento_cima(Pilha pilha){
 	}
 
 	pilha.Empilha(aux, ok);
-	al_flip_display();
+	//al_flip_display();
 }
 
 void imprime_elemento_recheio(Pilha pilha){
@@ -375,7 +562,7 @@ void imprime_elemento_recheio(Pilha pilha){
 	}
 
 	pilha.Empilha(aux, ok);
-	al_flip_display();
+	//al_flip_display();
 }
 
 void imprime_elemento_cobertura(Pilha pilha){
@@ -400,7 +587,7 @@ void imprime_elemento_cobertura(Pilha pilha){
 	}
 
 	pilha.Empilha(aux, ok);
-	al_flip_display();
+	//al_flip_display();
 }
 
 void imprime_elemento_baixo(Pilha pilha) {
@@ -423,7 +610,7 @@ void imprime_elemento_baixo(Pilha pilha) {
 		al_draw_bitmap(base5, (TELA_LARGURA / 2) - (al_get_bitmap_width(base5) / 2), 230, 0);
 	}
 	pilha.Empilha(aux, ok);
-	al_flip_display();
+	//al_flip_display();
 }
 
 bool inicializa() {
@@ -591,6 +778,37 @@ bool inicializa() {
 }
 
 bool inicializa_imagens() {
+
+	ganhou1 = al_load_bitmap("../imagens/venceu1.png");
+	if (!ganhou1) {
+		al_show_native_message_box(janela, "Error", "Error", "Failed to initialize ganhou1!",
+			NULL, ALLEGRO_MESSAGEBOX_ERROR);
+		return -1;
+	}
+	ganhou2 = al_load_bitmap("../imagens/venceu2.png");
+	if (!ganhou2) {
+		al_show_native_message_box(janela, "Error", "Error", "Failed to initialize ganhou2!",
+			NULL, ALLEGRO_MESSAGEBOX_ERROR);
+		return -1;
+	}
+	ganhou3 = al_load_bitmap("../imagens/venceu3.png");
+	if (!ganhou3) {
+		al_show_native_message_box(janela, "Error", "Error", "Failed to initialize ganhou3!",
+			NULL, ALLEGRO_MESSAGEBOX_ERROR);
+		return -1;
+	}
+	perdeu1 = al_load_bitmap("../imagens/perdeu1.png");
+	if (!perdeu1) {
+		al_show_native_message_box(janela, "Error", "Error", "Failed to initialize perdeu1!",
+			NULL, ALLEGRO_MESSAGEBOX_ERROR);
+		return -1;
+	}
+	perdeu2 = al_load_bitmap("../imagens/perdeu2.png");
+	if (!perdeu2) {
+		al_show_native_message_box(janela, "Error", "Error", "Failed to initialize perdeu2!",
+			NULL, ALLEGRO_MESSAGEBOX_ERROR);
+		return -1;
+	}
 
 	img_menu = al_load_bitmap("../imagens/tela1.png");
 	if (!img_menu) {
@@ -1103,6 +1321,12 @@ int tempo_random() {
 }
 
 void destrutores() {
+	al_destroy_bitmap(perdeu1);
+	al_destroy_bitmap(perdeu2);
+	al_destroy_bitmap(ganhou1);
+	al_destroy_bitmap(ganhou2);
+	al_destroy_bitmap(ganhou3);
+
 	al_destroy_bitmap(img_menu);
 	al_destroy_bitmap(img_menu1);
 	al_destroy_bitmap(img_menu2);

@@ -13,7 +13,6 @@ public:
 	bool Cheia();
 	void Empilha(int valor, bool &deuCerto);
 	void Desempilha(int &valor, bool &deuCerto);
-	bool IgualPilha(Pilha p1, Pilha p2, float &contador);
 	void ImprimePilha(Pilha &p1);
 	~Pilha();
 };
@@ -52,50 +51,6 @@ void Pilha::Desempilha(int &valor, bool &deuCerto) {
 		valor = marcador[topo];
 		topo -= 1;
 	}
-}
-
-bool Pilha::IgualPilha(Pilha p1, Pilha p2,float &contador)
-{
-	contador = 0;
-	bool flag1, flag2, auxStatus;
-	int elemento1, elemento2;
-	Pilha pilhaAux1, pilhaAux2;
-
-	auxStatus = true;
-
-	while ((p1.Vazia() == false) && (p2.Vazia() == false)) {
-		p1.Desempilha(elemento1, flag1);
-		p2.Desempilha(elemento2, flag2);
-		if (flag1 == true)
-			pilhaAux1.Empilha(elemento1, flag1);
-		if (flag2 == true)
-			pilhaAux2.Empilha(elemento2, flag2);
-		if ((flag1 == true) && (flag2 == false)) {
-			auxStatus = false;
-		}
-		if ((flag1 == false) && (flag2 == true)) {
-			auxStatus = false;
-		}
-		if ((flag1 == true) && (flag2 == true)) {
-			if (elemento1 != elemento2) {
-				auxStatus = false;
-				contador++;
-			}
-		}
-		contador /= 4.0;
-	}
-	while (pilhaAux1.Vazia() == false) {
-		pilhaAux1.Desempilha(elemento1, flag1);
-		p1.Empilha(elemento1, flag1);
-	}
-	while (pilhaAux2.Vazia() == false) {
-		pilhaAux2.Desempilha(elemento2, flag2);
-		p2.Empilha(elemento2, flag2);
-	}
-	if (auxStatus == true)
-		return true;
-	else
-		return false;
 }
 
 Pilha::~Pilha() {
