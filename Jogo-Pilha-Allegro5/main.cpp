@@ -103,10 +103,14 @@ void credito();
 void instrucao();
 void destrutores();
 bool inicializa_imagens();
+void imprime_elemento_baixo(Pilha pilha);
+void imprime_elemento_cima(Pilha pilha);
+void imprime_elemento_recheio(Pilha pilha);
+void imprime_elemento_cobertura(Pilha pilha);
 void gerador_bolo_modelo(Pilha &pilha);
 void imprime_bolo(Pilha &pilha);
 int tempo_random();
-int captura_bolo(Pilha &pilha);
+void captura_bolo(Pilha &pilha);
 // ______________________________
 
 int main(int argc, char **argv) {
@@ -126,8 +130,8 @@ int main(int argc, char **argv) {
 		opcao = menu();
 		if (opcao == jogar) {
 			int tempo = tempo_random();
-			gera_mostra_pronto(tempo, pilha_gera);
-			int a = captura_bolo(pilha_jogo);
+			gera_mostra_pronto(1, pilha_gera);
+			captura_bolo(pilha_jogo);
 		}
 		else if (opcao == creditos)
 			credito();
@@ -143,7 +147,7 @@ int main(int argc, char **argv) {
 
 ///*
 //FUNÇÕES PRINCIPAIS
-int captura_bolo(Pilha &pilha) {
+void captura_bolo(Pilha &pilha) {
 	bool ok;
 	int sair_captura = 0;
 	int tempo = 23;
@@ -154,8 +158,11 @@ int captura_bolo(Pilha &pilha) {
 		al_flip_display();
 		al_register_event_source(eventos_fila, al_get_mouse_event_source());
 
-	while (!sair_captura)
+	while (tempo != 0)
 	{
+		al_register_event_source(eventos_fila, al_get_timer_event_source(timer));
+
+		al_start_timer(timer);
 		while (!al_is_event_queue_empty(eventos_fila))
 		{
 			ALLEGRO_EVENT evento;
@@ -166,11 +173,11 @@ int captura_bolo(Pilha &pilha) {
 
 				if (evento.mouse.x >= 0 && evento.mouse.x <= 200 && evento.mouse.y >= 400 && evento.mouse.y <= 600 && !flag1)
 				{
-					//Lugar 1
+					//Lugar baixo
 					if (evento.mouse.x >= 20 && evento.mouse.x <= 90 && evento.mouse.y >= 420 && evento.mouse.y <= 460) {
 						al_draw_rectangle(20, 420, 90, 460, al_map_rgb(240, 0, 0), 7);
 						flag1 = true;
-						pilha.Empilha(0,ok);
+						pilha.Empilha(4,ok);
 					}
 					else if (evento.mouse.x >= 110 && evento.mouse.x <= 190 && evento.mouse.y >= 420 && evento.mouse.y <= 460) {
 						al_draw_rectangle(110, 420, 190, 460, al_map_rgb(240, 0, 0), 7);
@@ -182,43 +189,25 @@ int captura_bolo(Pilha &pilha) {
 						al_draw_rectangle(60, 480, 140, 520, al_map_rgb(240, 0, 0), 7);
 						al_flip_display();
 						flag1 = true;
-						pilha.Empilha(2, ok);
+						pilha.Empilha(0, ok);
 					}
 					else if (evento.mouse.x >= 20 && evento.mouse.x <= 90 && evento.mouse.y >= 540 && evento.mouse.y <= 580) {
 						al_draw_rectangle(20, 540, 90, 580, al_map_rgb(240, 0, 0), 7);
 						al_flip_display();
 						flag1 = true;
-						pilha.Empilha(3, ok);
+						pilha.Empilha(2, ok);
 					}
 					else if (evento.mouse.x >= 110 && evento.mouse.x <= 190 && evento.mouse.y >= 540 && evento.mouse.y <= 580) {
 						al_draw_rectangle(110, 540, 190, 580, al_map_rgb(240, 0, 0), 7);
 						al_flip_display();
 						flag1 = true;
-						pilha.Empilha(4, ok);
+						pilha.Empilha(3, ok);
 					}
-					int aux;
-					pilha.Desempilha(aux, ok);
-					if (aux == 0) {
-						al_draw_bitmap(base1, (TELA_LARGURA / 2) - (al_get_bitmap_width(base1) / 2), 290, 0);
-					}
-					else if (aux == 1) {
-						al_draw_bitmap(base2, (TELA_LARGURA / 2) - (al_get_bitmap_width(base2) / 2), 290, 0);
-					}
-					else if (aux == 2) {
-						al_draw_bitmap(base3, (TELA_LARGURA / 2) - (al_get_bitmap_width(base3) / 2), 290, 0);
-					}
-					else if (aux == 3) {
-						al_draw_bitmap(base4, (TELA_LARGURA / 2) - (al_get_bitmap_width(base4) / 2), 290, 0);
-					}
-					else if (aux == 4) {
-						al_draw_bitmap(base5, (TELA_LARGURA / 2) - (al_get_bitmap_width(base5) / 2), 290, 0);
-					}
-					pilha.Empilha(aux, ok);
-					al_flip_display();
+					imprime_elemento_baixo(pilha);
 				}
 				else if (evento.mouse.x > 200 && evento.mouse.x <= 400 && evento.mouse.y > 400 && evento.mouse.y <= 600 && !flag2)
 				{
-					//Lugar 1
+					//Lugar recheio
 					if (evento.mouse.x >= 210 && evento.mouse.x <= 300 && evento.mouse.y >= 420 && evento.mouse.y <= 460) {
 						al_draw_rectangle(210, 420, 300, 460, al_map_rgb(240, 0, 0), 7);
 						flag2 = true;
@@ -234,25 +223,25 @@ int captura_bolo(Pilha &pilha) {
 						al_draw_rectangle(260, 480, 340, 520, al_map_rgb(240, 0, 0), 7);
 						al_flip_display();
 						flag2 = true;
-						pilha.Empilha(7, ok);
+						pilha.Empilha(9, ok);
 					}
 					else if (evento.mouse.x >= 208 && evento.mouse.x <= 295 && evento.mouse.y >= 540 && evento.mouse.y <= 580) {
 						al_draw_rectangle(208, 540, 295, 580, al_map_rgb(240, 0, 0), 7);
 						al_flip_display();
 						flag2 = true;
-						pilha.Empilha(8, ok);
+						pilha.Empilha(7, ok);
 					}
 					else if (evento.mouse.x >= 300 && evento.mouse.x <= 395 && evento.mouse.y >= 540 && evento.mouse.y <= 580) {
 						al_draw_rectangle(300, 540, 395, 580, al_map_rgb(240, 0, 0), 7);
 						al_flip_display();
 						flag2 = true;
-						pilha.Empilha(9, ok);
+						pilha.Empilha(8, ok);
 					}
-					al_flip_display();
+					imprime_elemento_recheio(pilha);
 				}
 				else if (evento.mouse.x > 400 && evento.mouse.x <= 600 && evento.mouse.y > 400 && evento.mouse.y <= 600 && !flag3) 
 				{
-						//Lugar 1
+						//Lugar cima
 						if (evento.mouse.x >= 410 && evento.mouse.x <= 480 && evento.mouse.y >= 420 && evento.mouse.y <= 460) {
 							al_draw_rectangle(410, 420, 480, 460, al_map_rgb(240, 0, 0), 7);
 							flag3 = true;
@@ -262,7 +251,7 @@ int captura_bolo(Pilha &pilha) {
 							al_draw_rectangle(510, 420, 580, 460, al_map_rgb(240, 0, 0), 7);
 							al_flip_display();
 							flag3 = true;
-							pilha.Empilha(11, ok);
+							pilha.Empilha(13, ok);
 						}
 						else if (evento.mouse.x >= 460 && evento.mouse.x <= 525 && evento.mouse.y >= 480 && evento.mouse.y <= 520) {
 							al_draw_rectangle(460, 480, 525, 520, al_map_rgb(240, 0, 0), 7);
@@ -274,7 +263,7 @@ int captura_bolo(Pilha &pilha) {
 							al_draw_rectangle(410, 540, 480, 580, al_map_rgb(240, 0, 0), 7);
 							al_flip_display();
 							flag3 = true;
-							pilha.Empilha(13, ok);
+							pilha.Empilha(11, ok);
 						}
 						else if (evento.mouse.x >= 510 && evento.mouse.x <= 580 && evento.mouse.y >= 540 && evento.mouse.y <= 580) {
 							al_draw_rectangle(510, 540, 580, 580, al_map_rgb(240, 0, 0), 7);
@@ -282,28 +271,28 @@ int captura_bolo(Pilha &pilha) {
 							flag3 = true;
 							pilha.Empilha(14, ok);
 						}
-						al_flip_display();
+						imprime_elemento_cima(pilha);
 				}
 				//else if (evento.mouse.x > 600 && evento.mouse.x <= 800 && evento.mouse.y >= 400 && evento.mouse.y <= 600 && !flag4) {
 				else if (evento.mouse.x > 600 && evento.mouse.x <= 800 && evento.mouse.y >= 400 && evento.mouse.y <= 600 && !flag4) 
 				{
-					//Lugar 1
+					//Lugar cobertura
 					if (evento.mouse.x >= 610 && evento.mouse.x <= 695 && evento.mouse.y >= 420 && evento.mouse.y <= 460) {
 						al_draw_rectangle(610, 420, 695, 460, al_map_rgb(240, 0, 0), 7);
 						flag4 = true;
-						pilha.Empilha(15, ok);
+						pilha.Empilha(19, ok);
 					}
 					else if (evento.mouse.x >= 700 && evento.mouse.x <= 790 && evento.mouse.y >= 420 && evento.mouse.y <= 460) {
 						al_draw_rectangle(700, 420, 790, 460, al_map_rgb(240, 0, 0), 7);
 						al_flip_display();
 						flag4 = true;
-						pilha.Empilha(16, ok);
+						pilha.Empilha(17, ok);
 					}
 					else if (evento.mouse.x >= 650 && evento.mouse.x <= 745 && evento.mouse.y >= 480 && evento.mouse.y <= 520) {
 						al_draw_rectangle(650, 480, 745, 520, al_map_rgb(240, 0, 0), 7);
 						al_flip_display();
 						flag4 = true;
-						pilha.Empilha(17, ok);
+						pilha.Empilha(18, ok);
 					}
 					else if (evento.mouse.x >= 610 && evento.mouse.x <= 690 && evento.mouse.y >= 540 && evento.mouse.y <= 580) {
 						al_draw_rectangle(610, 540, 690, 580, al_map_rgb(240, 0, 0), 7);
@@ -315,16 +304,127 @@ int captura_bolo(Pilha &pilha) {
 						al_draw_rectangle(700, 540, 790, 580, al_map_rgb(240, 0, 0), 7);
 						al_flip_display();
 						flag4 = true;
-						pilha.Empilha(19, ok);
+						pilha.Empilha(15, ok);
 					}
-					return 0;
+					imprime_elemento_cobertura(pilha);
 				}
 			}
 		}
-		al_flip_display();
+		//al_flip_display();
+		if (!al_is_event_queue_empty(timer_fila))
+		{
+			ALLEGRO_EVENT evento;
+			al_wait_for_event(timer_fila, &evento);
+
+			if (evento.type == ALLEGRO_EVENT_TIMER)
+			{
+				tempo--;
+			}
+		}
+		al_draw_scaled_bitmap(cenario_vazio ,0, 0, 800, 600, 0, 0, al_get_display_width(janela), al_get_display_height(janela), 0);
+		al_draw_textf(fonte, al_map_rgb(240, 0, 0), 710, 5, ALLEGRO_ALIGN_CENTRE, "%d", tempo);
+
 	}
 }
 //*/
+
+void imprime_elemento_cima(Pilha pilha){
+	int aux;
+	bool ok;
+	pilha.Desempilha(aux, ok);
+
+	if (aux == 10) {
+		al_draw_bitmap(cima1, (TELA_LARGURA / 2) - (al_get_bitmap_width(recheio5) / 2), 140, 0);
+	}
+	else if (aux == 11) {
+		al_draw_bitmap(cima2, (TELA_LARGURA / 2) - (al_get_bitmap_width(recheio5) / 2), 140, 0);
+	}
+	else if (aux == 12) {
+		al_draw_bitmap(cima3, (TELA_LARGURA / 2) - (al_get_bitmap_width(recheio5) / 2), 140, 0);
+	}
+	else if (aux == 13) {
+		al_draw_bitmap(cima4, (TELA_LARGURA / 2) - (al_get_bitmap_width(recheio5) / 2), 140, 0);
+	}
+	else if (aux == 14) {
+		al_draw_bitmap(cima5, (TELA_LARGURA / 2) - (al_get_bitmap_width(recheio5) / 2), 140, 0);
+	}
+
+	pilha.Empilha(aux, ok);
+	al_flip_display();
+}
+
+void imprime_elemento_recheio(Pilha pilha){
+	int aux;
+	bool ok;
+	pilha.Desempilha(aux, ok);
+
+	if (aux == 5) {
+		al_draw_bitmap(recheio1, (TELA_LARGURA / 2) - (al_get_bitmap_width(recheio1) / 2), 200, 0);
+	}
+	else if (aux == 6) {
+		al_draw_bitmap(recheio2, (TELA_LARGURA / 2) - (al_get_bitmap_width(recheio2) / 2), 200, 0);
+	}
+	else if (aux == 7) {
+		al_draw_bitmap(recheio3, (TELA_LARGURA / 2) - (al_get_bitmap_width(recheio3) / 2), 200, 0);
+	}
+	else if (aux == 8) {
+		al_draw_bitmap(recheio4, (TELA_LARGURA / 2) - (al_get_bitmap_width(recheio4) / 2), 200, 0);
+	}
+	else if (aux == 9) {
+		al_draw_bitmap(recheio5, (TELA_LARGURA / 2) - (al_get_bitmap_width(recheio5) / 2), 200, 0);
+	}
+
+	pilha.Empilha(aux, ok);
+	al_flip_display();
+}
+
+void imprime_elemento_cobertura(Pilha pilha){
+	int aux;
+	bool ok;
+	pilha.Desempilha(aux, ok);
+
+	if (aux == 15) {
+		al_draw_bitmap(cobertura1, (TELA_LARGURA / 2) - (al_get_bitmap_width(cobertura1) / 2), 115, 0);
+	}
+	else if (aux == 16) {
+		al_draw_bitmap(cobertura2, (TELA_LARGURA / 2) - (al_get_bitmap_width(cobertura2) / 2), 115, 0);
+	}
+	else if (aux == 17) {
+		al_draw_bitmap(cobertura3, (TELA_LARGURA / 2) - (al_get_bitmap_width(cobertura3) / 2), 115, 0);
+	}
+	else if (aux == 18) {
+		al_draw_bitmap(cobertura4, (TELA_LARGURA / 2) - (al_get_bitmap_width(cobertura4) / 2), 115, 0);
+	}
+	else if (aux == 19) {
+		al_draw_bitmap(cobertura5, (TELA_LARGURA / 2) - (al_get_bitmap_width(cobertura5) / 2), 115, 0);
+	}
+
+	pilha.Empilha(aux, ok);
+	al_flip_display();
+}
+
+void imprime_elemento_baixo(Pilha pilha) {
+	int aux;
+	bool ok;
+	pilha.Desempilha(aux, ok);
+	if (aux == 0) {
+		al_draw_bitmap(base1, (TELA_LARGURA / 2) - (al_get_bitmap_width(base1) / 2), 230, 0);
+	}
+	else if (aux == 1) {
+		al_draw_bitmap(base2, (TELA_LARGURA / 2) - (al_get_bitmap_width(base2) / 2), 230, 0);
+	}
+	else if (aux == 2) {
+		al_draw_bitmap(base3, (TELA_LARGURA / 2) - (al_get_bitmap_width(base3) / 2), 230, 0);
+	}
+	else if (aux == 3) {
+		al_draw_bitmap(base4, (TELA_LARGURA / 2) - (al_get_bitmap_width(base4) / 2), 230, 0);
+	}
+	else if (aux == 4) {
+		al_draw_bitmap(base5, (TELA_LARGURA / 2) - (al_get_bitmap_width(base5) / 2), 230, 0);
+	}
+	pilha.Empilha(aux, ok);
+	al_flip_display();
+}
 
 bool inicializa() {
 
@@ -967,19 +1067,19 @@ void instrucao(){
 
 void gera_mostra_pronto(int tempo, Pilha &pilha_gera) {
 	
-	al_register_event_source(eventos_fila, al_get_timer_event_source(timer));
+	//al_register_event_source(eventos_fila, al_get_timer_event_source(timer));
 	al_register_event_source(timer_fila, al_get_timer_event_source(contador1));
 
-	al_start_timer(timer);
+	//al_start_timer(timer);
 	al_start_timer(contador1);
 	gerador_bolo_modelo(pilha_gera);
 	while (tempo != 0)
 	{
-		if (!al_is_event_queue_empty(eventos_fila))
-		{
-			ALLEGRO_EVENT evento;
-			al_wait_for_event(eventos_fila, &evento);
-		}
+		//if (!al_is_event_queue_empty(eventos_fila))
+		//{
+		//	ALLEGRO_EVENT evento;
+		//	al_wait_for_event(eventos_fila, &evento);
+		//}
 		if (!al_is_event_queue_empty(timer_fila))
 		{
 			ALLEGRO_EVENT evento;
