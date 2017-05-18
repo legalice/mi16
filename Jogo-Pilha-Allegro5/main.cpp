@@ -86,6 +86,8 @@ ALLEGRO_BITMAP *cobertura5 = NULL;
 ALLEGRO_BITMAP *cenario_vazio = NULL;
 ALLEGRO_BITMAP *cenario = NULL;
 
+ALLEGRO_BITMAP *tela_bolo_modelo = NULL;
+
 //Controle de telas
 enum{inicio,menu_jogo,jogar,instrucoes,creditos,sair};
 int estado = inicio;
@@ -96,16 +98,21 @@ int opcao;
 //FUNÇÕES PRINCIPAIS - Protótipo
 bool inicializa();
 int menu();
-void jogo();
+void gera_mostra_pronto(int tempo, Pilha &pilha_gera);
 void credito();
 void instrucao();
 void destrutores();
 bool inicializa_imagens();
 void gerador_bolo_modelo(Pilha &pilha);
 void imprime_bolo(Pilha &pilha);
+int tempo_random();
+int captura_bolo(Pilha &pilha);
 // ______________________________
 
 int main(int argc, char **argv) {
+
+	Pilha pilha_gera;
+	Pilha pilha_jogo;
 
 	if (!inicializa()) {
 		destrutores();
@@ -117,23 +124,208 @@ int main(int argc, char **argv) {
 	}
 	while (estado == inicio) {
 		opcao = menu();
-		if (opcao == jogar)
-			jogo();
+		if (opcao == jogar) {
+			int tempo = tempo_random();
+			gera_mostra_pronto(tempo, pilha_gera);
+			int a = captura_bolo(pilha_jogo);
+		}
 		else if (opcao == creditos)
 			credito();
 		else if (opcao == instrucoes)
 			instrucao();
 		else
 			estado = sair;
-
 	}
 	//DESTRUTORES
 	destrutores();
 	return 0;
 }
 
-
+///*
 //FUNÇÕES PRINCIPAIS
+int captura_bolo(Pilha &pilha) {
+	bool ok;
+	int sair_captura = 0;
+	int tempo = 23;
+	bool flag1 = false, flag2 = false, flag3 = false, flag4 = false;
+	bool iflag1 = false, iflag2 = false, iflag3 = false, iflag4 = false, iflag5 = false;
+		al_flip_display();
+		al_draw_scaled_bitmap(cenario, 0, 0, 800, 600, 0, 0, al_get_display_width(janela), al_get_display_height(janela), 0);
+		al_flip_display();
+		al_register_event_source(eventos_fila, al_get_mouse_event_source());
+
+	while (!sair_captura)
+	{
+		while (!al_is_event_queue_empty(eventos_fila))
+		{
+			ALLEGRO_EVENT evento;
+			al_wait_for_event(eventos_fila, &evento);
+
+			if (evento.type == ALLEGRO_EVENT_MOUSE_BUTTON_UP)
+			{
+
+				if (evento.mouse.x >= 0 && evento.mouse.x <= 200 && evento.mouse.y >= 400 && evento.mouse.y <= 600 && !flag1)
+				{
+					//Lugar 1
+					if (evento.mouse.x >= 20 && evento.mouse.x <= 90 && evento.mouse.y >= 420 && evento.mouse.y <= 460) {
+						al_draw_rectangle(20, 420, 90, 460, al_map_rgb(240, 0, 0), 7);
+						flag1 = true;
+						pilha.Empilha(0,ok);
+					}
+					else if (evento.mouse.x >= 110 && evento.mouse.x <= 190 && evento.mouse.y >= 420 && evento.mouse.y <= 460) {
+						al_draw_rectangle(110, 420, 190, 460, al_map_rgb(240, 0, 0), 7);
+						al_flip_display();
+						flag1 = true;
+						pilha.Empilha(1, ok);
+					}
+					else if (evento.mouse.x >= 60 && evento.mouse.x <= 140 && evento.mouse.y >= 480 && evento.mouse.y <= 520) {
+						al_draw_rectangle(60, 480, 140, 520, al_map_rgb(240, 0, 0), 7);
+						al_flip_display();
+						flag1 = true;
+						pilha.Empilha(2, ok);
+					}
+					else if (evento.mouse.x >= 20 && evento.mouse.x <= 90 && evento.mouse.y >= 540 && evento.mouse.y <= 580) {
+						al_draw_rectangle(20, 540, 90, 580, al_map_rgb(240, 0, 0), 7);
+						al_flip_display();
+						flag1 = true;
+						pilha.Empilha(3, ok);
+					}
+					else if (evento.mouse.x >= 110 && evento.mouse.x <= 190 && evento.mouse.y >= 540 && evento.mouse.y <= 580) {
+						al_draw_rectangle(110, 540, 190, 580, al_map_rgb(240, 0, 0), 7);
+						al_flip_display();
+						flag1 = true;
+						pilha.Empilha(4, ok);
+					}
+					int aux;
+					pilha.Desempilha(aux, ok);
+					if (aux == 0) {
+						al_draw_bitmap(base1, (TELA_LARGURA / 2) - (al_get_bitmap_width(base1) / 2), 290, 0);
+					}
+					else if (aux == 1) {
+						al_draw_bitmap(base2, (TELA_LARGURA / 2) - (al_get_bitmap_width(base2) / 2), 290, 0);
+					}
+					else if (aux == 2) {
+						al_draw_bitmap(base3, (TELA_LARGURA / 2) - (al_get_bitmap_width(base3) / 2), 290, 0);
+					}
+					else if (aux == 3) {
+						al_draw_bitmap(base4, (TELA_LARGURA / 2) - (al_get_bitmap_width(base4) / 2), 290, 0);
+					}
+					else if (aux == 4) {
+						al_draw_bitmap(base5, (TELA_LARGURA / 2) - (al_get_bitmap_width(base5) / 2), 290, 0);
+					}
+					pilha.Empilha(aux, ok);
+					al_flip_display();
+				}
+				else if (evento.mouse.x > 200 && evento.mouse.x <= 400 && evento.mouse.y > 400 && evento.mouse.y <= 600 && !flag2)
+				{
+					//Lugar 1
+					if (evento.mouse.x >= 210 && evento.mouse.x <= 300 && evento.mouse.y >= 420 && evento.mouse.y <= 460) {
+						al_draw_rectangle(210, 420, 300, 460, al_map_rgb(240, 0, 0), 7);
+						flag2 = true;
+						pilha.Empilha(5, ok);
+					}
+					else if (evento.mouse.x >= 305 && evento.mouse.x <= 390 && evento.mouse.y >= 420 && evento.mouse.y <= 460) {
+						al_draw_rectangle(305, 420, 390, 460, al_map_rgb(240, 0, 0), 7);
+						al_flip_display();
+						flag2 = true;
+						pilha.Empilha(6, ok);
+					}
+					else if (evento.mouse.x >= 260 && evento.mouse.x <= 340 && evento.mouse.y >= 480 && evento.mouse.y <= 520) {
+						al_draw_rectangle(260, 480, 340, 520, al_map_rgb(240, 0, 0), 7);
+						al_flip_display();
+						flag2 = true;
+						pilha.Empilha(7, ok);
+					}
+					else if (evento.mouse.x >= 208 && evento.mouse.x <= 295 && evento.mouse.y >= 540 && evento.mouse.y <= 580) {
+						al_draw_rectangle(208, 540, 295, 580, al_map_rgb(240, 0, 0), 7);
+						al_flip_display();
+						flag2 = true;
+						pilha.Empilha(8, ok);
+					}
+					else if (evento.mouse.x >= 300 && evento.mouse.x <= 395 && evento.mouse.y >= 540 && evento.mouse.y <= 580) {
+						al_draw_rectangle(300, 540, 395, 580, al_map_rgb(240, 0, 0), 7);
+						al_flip_display();
+						flag2 = true;
+						pilha.Empilha(9, ok);
+					}
+					al_flip_display();
+				}
+				else if (evento.mouse.x > 400 && evento.mouse.x <= 600 && evento.mouse.y > 400 && evento.mouse.y <= 600 && !flag3) 
+				{
+						//Lugar 1
+						if (evento.mouse.x >= 410 && evento.mouse.x <= 480 && evento.mouse.y >= 420 && evento.mouse.y <= 460) {
+							al_draw_rectangle(410, 420, 480, 460, al_map_rgb(240, 0, 0), 7);
+							flag3 = true;
+							pilha.Empilha(10, ok);
+						}
+						else if (evento.mouse.x >= 510 && evento.mouse.x <= 580 && evento.mouse.y >= 420 && evento.mouse.y <= 460) {
+							al_draw_rectangle(510, 420, 580, 460, al_map_rgb(240, 0, 0), 7);
+							al_flip_display();
+							flag3 = true;
+							pilha.Empilha(11, ok);
+						}
+						else if (evento.mouse.x >= 460 && evento.mouse.x <= 525 && evento.mouse.y >= 480 && evento.mouse.y <= 520) {
+							al_draw_rectangle(460, 480, 525, 520, al_map_rgb(240, 0, 0), 7);
+							al_flip_display();
+							flag3 = true;
+							pilha.Empilha(12, ok);
+						}
+						else if (evento.mouse.x >= 410 && evento.mouse.x <= 480 && evento.mouse.y >= 540 && evento.mouse.y <= 580) {
+							al_draw_rectangle(410, 540, 480, 580, al_map_rgb(240, 0, 0), 7);
+							al_flip_display();
+							flag3 = true;
+							pilha.Empilha(13, ok);
+						}
+						else if (evento.mouse.x >= 510 && evento.mouse.x <= 580 && evento.mouse.y >= 540 && evento.mouse.y <= 580) {
+							al_draw_rectangle(510, 540, 580, 580, al_map_rgb(240, 0, 0), 7);
+							al_flip_display();
+							flag3 = true;
+							pilha.Empilha(14, ok);
+						}
+						al_flip_display();
+				}
+				//else if (evento.mouse.x > 600 && evento.mouse.x <= 800 && evento.mouse.y >= 400 && evento.mouse.y <= 600 && !flag4) {
+				else if (evento.mouse.x > 600 && evento.mouse.x <= 800 && evento.mouse.y >= 400 && evento.mouse.y <= 600 && !flag4) 
+				{
+					//Lugar 1
+					if (evento.mouse.x >= 610 && evento.mouse.x <= 695 && evento.mouse.y >= 420 && evento.mouse.y <= 460) {
+						al_draw_rectangle(610, 420, 695, 460, al_map_rgb(240, 0, 0), 7);
+						flag4 = true;
+						pilha.Empilha(15, ok);
+					}
+					else if (evento.mouse.x >= 700 && evento.mouse.x <= 790 && evento.mouse.y >= 420 && evento.mouse.y <= 460) {
+						al_draw_rectangle(700, 420, 790, 460, al_map_rgb(240, 0, 0), 7);
+						al_flip_display();
+						flag4 = true;
+						pilha.Empilha(16, ok);
+					}
+					else if (evento.mouse.x >= 650 && evento.mouse.x <= 745 && evento.mouse.y >= 480 && evento.mouse.y <= 520) {
+						al_draw_rectangle(650, 480, 745, 520, al_map_rgb(240, 0, 0), 7);
+						al_flip_display();
+						flag4 = true;
+						pilha.Empilha(17, ok);
+					}
+					else if (evento.mouse.x >= 610 && evento.mouse.x <= 690 && evento.mouse.y >= 540 && evento.mouse.y <= 580) {
+						al_draw_rectangle(610, 540, 690, 580, al_map_rgb(240, 0, 0), 7);
+						al_flip_display();
+						flag4 = true;
+						pilha.Empilha(18, ok);
+					}
+					else if (evento.mouse.x >= 700 && evento.mouse.x <= 790 && evento.mouse.y >= 540 && evento.mouse.y <= 580) {
+						al_draw_rectangle(700, 540, 790, 580, al_map_rgb(240, 0, 0), 7);
+						al_flip_display();
+						flag4 = true;
+						pilha.Empilha(19, ok);
+					}
+					return 0;
+				}
+			}
+		}
+		al_flip_display();
+	}
+}
+//*/
+
 bool inicializa() {
 
 	al_init();
@@ -510,8 +702,15 @@ bool inicializa_imagens() {
 		return -1;
 	}
 
-	cenario = al_load_bitmap("../imagens/cenario1.png");
+	cenario = al_load_bitmap("../imagens/cenario_novo.png");
 	if (!cenario) {
+		al_show_native_message_box(janela, "Error", "Error", "Failed to initialize cenario!",
+			NULL, ALLEGRO_MESSAGEBOX_ERROR);
+		return -1;
+	}
+
+	tela_bolo_modelo = al_load_bitmap("../imagens/tela_bolo_modelo.png");
+	if (!tela_bolo_modelo) {
 		al_show_native_message_box(janela, "Error", "Error", "Failed to initialize cenario!",
 			NULL, ALLEGRO_MESSAGEBOX_ERROR);
 		return -1;
@@ -766,21 +965,15 @@ void instrucao(){
 	}
 }
 
-void jogo() {
+void gera_mostra_pronto(int tempo, Pilha &pilha_gera) {
 	
-///*
 	al_register_event_source(eventos_fila, al_get_timer_event_source(timer));
 	al_register_event_source(timer_fila, al_get_timer_event_source(contador1));
-	//int r = 0, g = 0, b = 0;
-	int seg = 60;
-	Pilha pilha;
 
 	al_start_timer(timer);
 	al_start_timer(contador1);
-	gerador_bolo_modelo(pilha);
-	//imprime_bolo(pilha);
-	//al_flip_display();
-	while (true)
+	gerador_bolo_modelo(pilha_gera);
+	while (tempo != 0)
 	{
 		if (!al_is_event_queue_empty(eventos_fila))
 		{
@@ -794,27 +987,20 @@ void jogo() {
 
 			if (evento.type == ALLEGRO_EVENT_TIMER)
 			{
-				seg--;
+				tempo--;
 			}
 		}
-		//al_clear_to_color(al_map_rgb(r, g, b));
-		al_draw_scaled_bitmap(cenario_vazio, 0, 0, 800, 600, 0, 0, al_get_display_width(janela), al_get_display_height(janela), 0);
-		al_draw_textf(fonte, al_map_rgb(240, 0, 0), 710, 5, ALLEGRO_ALIGN_CENTRE, "%d", seg);
-		imprime_bolo(pilha);
-		//al_flip_display();
+		al_draw_scaled_bitmap(tela_bolo_modelo, 0, 0, 800, 600, 0, 0, al_get_display_width(janela), al_get_display_height(janela), 0);
+		al_draw_textf(fonte, al_map_rgb(240, 0, 0), 710, 5, ALLEGRO_ALIGN_CENTRE, "%d", tempo);
+		imprime_bolo(pilha_gera);
 	}
 }
-//*/
-/*
-	while (true) {
-		Pilha pilha;
-		al_flip_display();
-		al_draw_scaled_bitmap(cenario_vazio, 0, 0, 800, 600, 0, 0, al_get_display_width(janela), al_get_display_height(janela), 0);
-		gerador_bolo_modelo(pilha);
-		imprime_bolo(pilha);
-	}
+
+int tempo_random() {
+	srand(time(NULL));
+	int tempo_bolo = rand() % 10;
+	return tempo_bolo;
 }
-*/
 
 void destrutores() {
 	al_destroy_bitmap(img_menu);
@@ -822,6 +1008,7 @@ void destrutores() {
 	al_destroy_bitmap(img_menu2);
 	al_destroy_bitmap(img_menu3);
 	al_destroy_bitmap(img_menu4);
+	al_destroy_bitmap(tela_bolo_modelo);
 
 	al_destroy_bitmap(base1);
 	al_destroy_bitmap(base2);
