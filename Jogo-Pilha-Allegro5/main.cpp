@@ -1,0 +1,868 @@
+#include <iostream>
+#include <stdio.h>
+#include <stdlib.h>
+#include <math.h>
+#include <time.h>
+
+// ______________________________
+
+//BIBLIOTECAS DO ALLEGRO
+#include <allegro5\allegro.h>
+#include <allegro5\allegro_image.h>
+#include <allegro5\allegro_primitives.h>
+#include <allegro5\allegro_font.h>
+#include <allegro5\allegro_ttf.h>
+#include <allegro5\allegro_native_dialog.h>
+#include <allegro5\allegro_audio.h>
+#include <allegro5\allegro_acodec.h>
+
+//INCLUDES DO JOGO
+
+#include "pilha.h"
+// ______________________________
+//VARIAVEIS GLOBAIS
+
+
+const float FPS = 60; //frequencia de atualização da tela
+const int TELA_LARGURA = 800;
+const int TELA_ALTURA = 600;
+bool musica_estado = true;
+int mouse;
+
+//display
+ALLEGRO_DISPLAY *janela = NULL; 
+ALLEGRO_EVENT_QUEUE *eventos_fila = NULL, *timer_fila = NULL; //cria fila de eventos
+ALLEGRO_TIMER *timer = NULL;// temporizador de atualização da tela do jogo
+ALLEGRO_TIMER *contador1 = NULL;
+ALLEGRO_TIMER *contador2 = NULL;
+ALLEGRO_TIMER *contador3 = NULL;
+ALLEGRO_TIMER *contador4 = NULL;
+
+//imagens
+ALLEGRO_BITMAP *janela_icone = NULL;
+
+ALLEGRO_FONT *fonte = NULL;
+
+//imagens do menu
+ALLEGRO_BITMAP *img_menu = NULL;
+ALLEGRO_BITMAP *img_menu1 = NULL;
+ALLEGRO_BITMAP *img_menu2 = NULL;
+ALLEGRO_BITMAP *img_menu3 = NULL;
+ALLEGRO_BITMAP *img_menu4 = NULL;
+
+ALLEGRO_BITMAP *creditos1 = NULL;
+ALLEGRO_BITMAP *creditos2 = NULL;
+ALLEGRO_BITMAP *instrucoes1 = NULL;
+ALLEGRO_BITMAP *instrucoes2 = NULL;
+//Audio
+ALLEGRO_SAMPLE *musica = NULL;
+ALLEGRO_SAMPLE_INSTANCE *musica_instancia = NULL;
+
+//Jogo
+ALLEGRO_BITMAP *base1 = NULL;
+ALLEGRO_BITMAP *base2 = NULL;
+ALLEGRO_BITMAP *base3 = NULL;
+ALLEGRO_BITMAP *base4 = NULL;
+ALLEGRO_BITMAP *base5 = NULL;
+
+ALLEGRO_BITMAP *recheio1 = NULL;
+ALLEGRO_BITMAP *recheio2 = NULL;
+ALLEGRO_BITMAP *recheio3 = NULL;
+ALLEGRO_BITMAP *recheio4 = NULL;
+ALLEGRO_BITMAP *recheio5 = NULL;
+
+ALLEGRO_BITMAP *cima1 = NULL;
+ALLEGRO_BITMAP *cima2 = NULL;
+ALLEGRO_BITMAP *cima3 = NULL;
+ALLEGRO_BITMAP *cima4 = NULL;
+ALLEGRO_BITMAP *cima5 = NULL;
+
+ALLEGRO_BITMAP *cobertura1 = NULL;
+ALLEGRO_BITMAP *cobertura2 = NULL;
+ALLEGRO_BITMAP *cobertura3 = NULL;
+ALLEGRO_BITMAP *cobertura4 = NULL;
+ALLEGRO_BITMAP *cobertura5 = NULL;
+
+ALLEGRO_BITMAP *cenario_vazio = NULL;
+ALLEGRO_BITMAP *cenario = NULL;
+
+//Controle de telas
+enum{inicio,menu_jogo,jogar,instrucoes,creditos,sair};
+int estado = inicio;
+int opcao;
+
+// ______________________________
+
+//FUNÇÕES PRINCIPAIS - Protótipo
+bool inicializa();
+int menu();
+void jogo();
+void credito();
+void instrucao();
+void destrutores();
+bool inicializa_imagens();
+void gerador_bolo_modelo(Pilha &pilha);
+void imprime_bolo(Pilha &pilha);
+// ______________________________
+
+int main(int argc, char **argv) {
+
+	if (!inicializa()) {
+		destrutores();
+		return 0;
+	}
+	if (!inicializa_imagens()) {
+		destrutores();
+		return 0;
+	}
+	while (estado == inicio) {
+		opcao = menu();
+		if (opcao == jogar)
+			jogo();
+		else if (opcao == creditos)
+			credito();
+		else if (opcao == instrucoes)
+			instrucao();
+		else
+			estado = sair;
+
+	}
+	//DESTRUTORES
+	destrutores();
+	return 0;
+}
+
+
+//FUNÇÕES PRINCIPAIS
+bool inicializa() {
+
+	al_init();
+	al_init_font_addon();
+	al_init_image_addon();
+	al_init_primitives_addon();
+	al_init_ttf_addon();
+	al_install_keyboard();
+	al_install_mouse();
+	al_install_audio();
+	al_init_acodec_addon();
+
+	if (!al_init())
+	{
+		fprintf(stderr, "Falha ao inicializar Allegro.\n");
+		return false;
+	}
+
+	if (!al_install_audio())
+	{
+		fprintf(stderr, "Falha ao inicializar áudio.\n");
+		return false;
+	}
+
+	if (!al_init_acodec_addon())
+	{
+		fprintf(stderr, "Falha ao inicializar codecs de áudio.\n");
+		return false;
+	}
+
+	if (!al_reserve_samples(1))
+	{
+		fprintf(stderr, "Falha ao alocar canais de áudio.\n");
+		return false;
+	}
+
+	if (!al_install_keyboard())
+	{
+		fprintf(stderr, "Falha ao inicializar teclado.\n");
+		return false;
+	}
+
+	janela = al_create_display(TELA_LARGURA, TELA_ALTURA);
+	if (!janela)
+	{
+		fprintf(stderr, "Falha ao criar a janela.\n");
+		return false;
+	}
+
+	musica = al_load_sample("../sons/caketown.ogg");
+	if (!musica)
+	{
+		fprintf(stderr, "Falha ao carregar sample.\n");
+		al_destroy_display(janela);
+		return false;
+	}
+
+	if (!al_install_mouse())
+	{
+		fprintf(stderr, "Falha ao inicializar o mouse.\n");
+		al_destroy_display(janela);
+		return -1;
+	}
+
+	if (!al_set_system_mouse_cursor(janela, ALLEGRO_SYSTEM_MOUSE_CURSOR_DEFAULT))
+	{
+		fprintf(stderr, "Falha ao atribuir ponteiro do mouse.\n");
+		al_destroy_display(janela);
+		return -1;
+	}
+
+	fonte = al_load_font("../imagens/NANO-LOW.TTF", 35, 0);
+	if (!fonte)
+	{
+		fprintf(stderr, "Falha ao carregar fonte.\n");
+		al_destroy_timer(contador1);
+		al_destroy_timer(contador2);
+		al_destroy_timer(contador3);
+		al_destroy_timer(contador4);
+		al_destroy_font(fonte);
+		al_destroy_timer(timer);
+		al_destroy_event_queue(eventos_fila);
+		al_destroy_event_queue(timer_fila);
+		al_destroy_display(janela);
+		return false;
+	}
+
+	timer = al_create_timer(0.1);
+	if (!timer)
+	{
+		fprintf(stderr, "Falha ao criar timer.\n");
+		al_destroy_font(fonte);
+		al_destroy_timer(timer);
+		al_destroy_event_queue(eventos_fila);
+		al_destroy_display(janela);
+		return false;
+	}
+
+	contador1 = al_create_timer(1.0);
+	if (!contador1)
+	{
+		fprintf(stderr, "Falha ao criar timer.\n");
+		al_destroy_font(fonte);
+		al_destroy_timer(contador1);
+		al_destroy_timer(timer);
+		al_destroy_event_queue(eventos_fila);
+		al_destroy_display(janela);
+		return false;
+	}
+
+	eventos_fila = al_create_event_queue();
+	if (!eventos_fila)
+	{
+		fprintf(stderr, "Falha ao criar fila de eventos.\n");
+		al_destroy_display(janela);
+		al_destroy_sample(musica);
+		return false;
+	}
+
+	timer_fila = al_create_event_queue();
+	if (!timer_fila)
+	{
+		fprintf(stderr, "Falha ao criar fila do contador.\n");
+		al_destroy_timer(contador1);
+		al_destroy_timer(contador2);
+		al_destroy_timer(contador3);
+		al_destroy_timer(contador4);
+		al_destroy_font(fonte);
+		al_destroy_timer(timer);
+		al_destroy_event_queue(eventos_fila);
+		al_destroy_event_queue(timer_fila);
+		al_destroy_display(janela);
+		return false;
+	}
+
+	al_set_window_title(janela, "Fabrica de Bolos");
+
+	janela_icone = al_load_bitmap("../imagens/janela_icone.png");
+	if (!janela_icone) {
+		al_show_native_message_box(janela, "Error", "Error", "Failed to initialize bg_main!",
+			NULL, ALLEGRO_MESSAGEBOX_ERROR);
+		return -1;
+	}
+
+	al_reserve_samples(2); //quantos sons podem tocar AO MESMO TEMPO?
+	musica = al_load_sample("../sons/caketown.ogg");
+	if (!musica) {
+		al_show_native_message_box(janela, "Error", "Error", "Failed to initialize musica",
+			NULL, ALLEGRO_MESSAGEBOX_ERROR);
+		return -1;
+	}
+
+	musica_instancia = al_create_sample_instance(musica);
+	al_set_sample_instance_playmode(musica_instancia, ALLEGRO_PLAYMODE_LOOP);
+	al_attach_sample_instance_to_mixer(musica_instancia, al_get_default_mixer());
+	al_set_mixer_gain(al_get_default_mixer(), 1.0); //amplificador da musica
+	al_play_sample_instance(musica_instancia); //da play na musica
+
+	al_set_window_title(janela, "Fabrica de Bolos");
+	al_set_display_icon(janela, janela_icone);
+
+	return true;
+}
+
+bool inicializa_imagens() {
+
+	img_menu = al_load_bitmap("../imagens/tela1.png");
+	if (!img_menu) {
+		al_show_native_message_box(janela, "Error", "Error", "Failed to initialize img_menu!",
+			NULL, ALLEGRO_MESSAGEBOX_ERROR);
+		return -1;
+	}
+
+	img_menu1 = al_load_bitmap("../imagens/tela2.png");
+	if (!img_menu1) {
+		al_show_native_message_box(janela, "Error", "Error", "Failed to initialize img_menu1!",
+			NULL, ALLEGRO_MESSAGEBOX_ERROR);
+		return -1;
+	}
+
+	img_menu2 = al_load_bitmap("../imagens/tela3.png");
+	if (!img_menu2) {
+		al_show_native_message_box(janela, "Error", "Error", "Failed to initialize img_menu2!",
+			NULL, ALLEGRO_MESSAGEBOX_ERROR);
+		return -1;
+	}
+
+	img_menu3 = al_load_bitmap("../imagens/tela4.png");
+	if (!img_menu3) {
+		al_show_native_message_box(janela, "Error", "Error", "Failed to initialize img_menu3!",
+			NULL, ALLEGRO_MESSAGEBOX_ERROR);
+		return -1;
+	}
+
+	img_menu4 = al_load_bitmap("../imagens/tela5.png");
+	if (!img_menu4) {
+		al_show_native_message_box(janela, "Error", "Error", "Failed to initialize img_menu4!",
+			NULL, ALLEGRO_MESSAGEBOX_ERROR);
+		return -1;
+	}
+
+	base1 = al_load_bitmap("../imagens/bolo1.png");
+	if (!base1) {
+		al_show_native_message_box(janela, "Error", "Error", "Failed to initialize base1!",
+			NULL, ALLEGRO_MESSAGEBOX_ERROR);
+		return -1;
+	}
+
+	base2 = al_load_bitmap("../imagens/bolo2.png");
+	if (!base2) {
+		al_show_native_message_box(janela, "Error", "Error", "Failed to initialize base2!",
+			NULL, ALLEGRO_MESSAGEBOX_ERROR);
+		return -1;
+	}
+
+	base3 = al_load_bitmap("../imagens/bolo3.png");
+	if (!base3) {
+		al_show_native_message_box(janela, "Error", "Error", "Failed to initialize base3!",
+			NULL, ALLEGRO_MESSAGEBOX_ERROR);
+		return -1;
+	}
+
+	base4 = al_load_bitmap("../imagens/bolo4.png");
+	if (!base4) {
+		al_show_native_message_box(janela, "Error", "Error", "Failed to initialize base4!",
+			NULL, ALLEGRO_MESSAGEBOX_ERROR);
+		return -1;
+	}
+
+	base5 = al_load_bitmap("../imagens/bolo5.png");
+	if (!base5) {
+		al_show_native_message_box(janela, "Error", "Error", "Failed to initialize base5!",
+			NULL, ALLEGRO_MESSAGEBOX_ERROR);
+		return -1;
+	}
+
+	recheio1 = al_load_bitmap("../imagens/recheio1.png");
+	if (!recheio1) {
+		al_show_native_message_box(janela, "Error", "Error", "Failed to initialize recheio1!",
+			NULL, ALLEGRO_MESSAGEBOX_ERROR);
+		return -1;
+	}
+
+	recheio2 = al_load_bitmap("../imagens/recheio2.png");
+	if (!recheio2) {
+		al_show_native_message_box(janela, "Error", "Error", "Failed to initialize recheio2!",
+			NULL, ALLEGRO_MESSAGEBOX_ERROR);
+		return -1;
+	}
+
+	recheio3 = al_load_bitmap("../imagens/recheio3.png");
+	if (!recheio3) {
+		al_show_native_message_box(janela, "Error", "Error", "Failed to initialize recheio3!",
+			NULL, ALLEGRO_MESSAGEBOX_ERROR);
+		return -1;
+	}
+
+	recheio4 = al_load_bitmap("../imagens/recheio4.png");
+	if (!recheio4) {
+		al_show_native_message_box(janela, "Error", "Error", "Failed to initialize recheio4!",
+			NULL, ALLEGRO_MESSAGEBOX_ERROR);
+		return -1;
+	}
+
+	recheio5 = al_load_bitmap("../imagens/recheio5.png");
+	if (!recheio5) {
+		al_show_native_message_box(janela, "Error", "Error", "Failed to initialize recheio5!",
+			NULL, ALLEGRO_MESSAGEBOX_ERROR);
+		return -1;
+	}
+
+	cima1 = al_load_bitmap("../imagens/bolo6.png");
+	if (!cima1) {
+		al_show_native_message_box(janela, "Error", "Error", "Failed to initialize cima1!",
+			NULL, ALLEGRO_MESSAGEBOX_ERROR);
+		return -1;
+	}
+
+	cima2 = al_load_bitmap("../imagens/bolo7.png");
+	if (!cima2) {
+		al_show_native_message_box(janela, "Error", "Error", "Failed to initialize cima2!",
+			NULL, ALLEGRO_MESSAGEBOX_ERROR);
+		return -1;
+	}
+
+	cima3 = al_load_bitmap("../imagens/bolo8.png");
+	if (!cima3) {
+		al_show_native_message_box(janela, "Error", "Error", "Failed to initialize cima3!",
+			NULL, ALLEGRO_MESSAGEBOX_ERROR);
+		return -1;
+	}
+
+	cima4 = al_load_bitmap("../imagens/bolo9.png");
+	if (!cima4) {
+		al_show_native_message_box(janela, "Error", "Error", "Failed to initialize cima4!",
+			NULL, ALLEGRO_MESSAGEBOX_ERROR);
+		return -1;
+	}
+
+	cima5 = al_load_bitmap("../imagens/bolo10.png");
+	if (!cima5) {
+		al_show_native_message_box(janela, "Error", "Error", "Failed to initialize cima5!",
+			NULL, ALLEGRO_MESSAGEBOX_ERROR);
+		return -1;
+	}
+
+	cobertura1 = al_load_bitmap("../imagens/cobertura1.png");
+	if (!cobertura1) {
+		al_show_native_message_box(janela, "Error", "Error", "Failed to initialize cobertura1!",
+			NULL, ALLEGRO_MESSAGEBOX_ERROR);
+		return -1;
+	}
+
+	cobertura2 = al_load_bitmap("../imagens/cobertura2.png");
+	if (!cobertura2) {
+		al_show_native_message_box(janela, "Error", "Error", "Failed to initialize cobertura2!",
+			NULL, ALLEGRO_MESSAGEBOX_ERROR);
+		return -1;
+	}
+
+	cobertura3 = al_load_bitmap("../imagens/cobertura3.png");
+	if (!cobertura3) {
+		al_show_native_message_box(janela, "Error", "Error", "Failed to initialize cobertura3!",
+			NULL, ALLEGRO_MESSAGEBOX_ERROR);
+		return -1;
+	}
+
+	cobertura4 = al_load_bitmap("../imagens/cobertura4.png");
+	if (!cobertura4) {
+		al_show_native_message_box(janela, "Error", "Error", "Failed to initialize cobertura4!",
+			NULL, ALLEGRO_MESSAGEBOX_ERROR);
+		return -1;
+	}
+
+	cobertura5 = al_load_bitmap("../imagens/cobertura5.png");
+	if (!cobertura5) {
+		al_show_native_message_box(janela, "Error", "Error", "Failed to initialize cobertura5!",
+			NULL, ALLEGRO_MESSAGEBOX_ERROR);
+		return -1;
+	}
+
+	cenario_vazio = al_load_bitmap("../imagens/cenario.png");
+	if (!cenario_vazio) {
+		al_show_native_message_box(janela, "Error", "Error", "Failed to initialize cenario vazio!",
+			NULL, ALLEGRO_MESSAGEBOX_ERROR);
+		return -1;
+	}
+
+	creditos1 = al_load_bitmap("../imagens/creditos1.png");
+	if (!creditos1) {
+		al_show_native_message_box(janela, "Error", "Error", "Failed to initialize creditos1!",
+			NULL, ALLEGRO_MESSAGEBOX_ERROR);
+		return -1;
+	}
+
+	creditos2 = al_load_bitmap("../imagens/creditos2.png");
+	if (!creditos2) {
+		al_show_native_message_box(janela, "Error", "Error", "Failed to initialize creditos2!",
+			NULL, ALLEGRO_MESSAGEBOX_ERROR);
+		return -1;
+	}
+
+	instrucoes1 = al_load_bitmap("../imagens/instrucoes1.png");
+	if (!instrucoes1) {
+		al_show_native_message_box(janela, "Error", "Error", "Failed to initialize instrucoes1!",
+			NULL, ALLEGRO_MESSAGEBOX_ERROR);
+		return -1;
+	}
+
+	instrucoes2 = al_load_bitmap("../imagens/instrucoes2.png");
+	if (!instrucoes2) {
+		al_show_native_message_box(janela, "Error", "Error", "Failed to initialize cenario!",
+			NULL, ALLEGRO_MESSAGEBOX_ERROR);
+		return -1;
+	}
+
+	cenario = al_load_bitmap("../imagens/cenario1.png");
+	if (!cenario) {
+		al_show_native_message_box(janela, "Error", "Error", "Failed to initialize cenario!",
+			NULL, ALLEGRO_MESSAGEBOX_ERROR);
+		return -1;
+	}
+
+	return true;
+}
+
+int menu() {
+	int sair_menu = 0;
+
+	al_flip_display();
+	al_draw_scaled_bitmap(img_menu, 0, 0, 800, 600, 0, 0, al_get_display_width(janela), al_get_display_height(janela), 0);
+	al_flip_display();
+	al_register_event_source(eventos_fila, al_get_mouse_event_source());
+	
+	while (!sair_menu)
+	{
+		while (!al_is_event_queue_empty(eventos_fila))
+		{
+			ALLEGRO_EVENT evento;
+			al_wait_for_event(eventos_fila, &evento);
+
+			if (evento.type == ALLEGRO_EVENT_MOUSE_AXES)
+			{
+				
+				if (evento.mouse.x >= 20 && evento.mouse.x <= 200 && evento.mouse.y >= 480 && evento.mouse.y <= 540)
+				{
+					al_flip_display();
+					al_draw_scaled_bitmap(img_menu1, 0, 0, 800, 600, 0, 0, al_get_display_width(janela), al_get_display_height(janela), 0);
+					al_flip_display();
+				}
+				else if (evento.mouse.x >= 220 && evento.mouse.x <= 390 && evento.mouse.y >= 480 && evento.mouse.y <= 540) {
+					al_flip_display();
+					al_draw_scaled_bitmap(img_menu2, 0, 0, 800, 600, 0, 0, al_get_display_width(janela), al_get_display_height(janela), 0);
+					al_flip_display();
+				}
+				else if (evento.mouse.x >= 420 && evento.mouse.x <= 590 && evento.mouse.y >= 480 && evento.mouse.y <= 540) {
+					al_flip_display();
+					al_draw_scaled_bitmap(img_menu3, 0, 0, 800, 600, 0, 0, al_get_display_width(janela), al_get_display_height(janela), 0);
+					al_flip_display();
+				}
+				else if (evento.mouse.x >= 610 && evento.mouse.x <= 790 && evento.mouse.y >= 480 && evento.mouse.y <= 540) {
+					al_flip_display();
+					al_draw_scaled_bitmap(img_menu4, 0, 0, 800, 600, 0, 0, al_get_display_width(janela), al_get_display_height(janela), 0);
+					al_flip_display();
+				}
+				else {
+					al_flip_display();
+					al_draw_scaled_bitmap(img_menu, 0, 0, 800, 600, 0, 0, al_get_display_width(janela), al_get_display_height(janela), 0);
+					al_flip_display();
+				}
+			}
+			// Ou se o evento foi um clique do mouse
+			else if (evento.type == ALLEGRO_EVENT_MOUSE_BUTTON_UP)
+			{
+				if (evento.mouse.x >= 20 && evento.mouse.x <= 200 && evento.mouse.y >= 480 && evento.mouse.y <= 540) {
+					al_clear_to_color(al_map_rgb(0, 0, 0));
+					al_flip_display();
+					return jogar;
+				}
+				else if (evento.mouse.x >= 220 && evento.mouse.x <= 390 && evento.mouse.y >= 480 && evento.mouse.y <= 540) {
+					al_clear_to_color(al_map_rgb(0, 0, 0));
+					al_flip_display();
+					return instrucoes;
+				}
+				else if (evento.mouse.x >= 420 && evento.mouse.x <= 590 && evento.mouse.y >= 480 && evento.mouse.y <= 540) {
+					al_clear_to_color(al_map_rgb(0, 0, 0));
+					al_flip_display();
+					return creditos;
+				}
+				else if (evento.mouse.x >= 610 && evento.mouse.x <= 790 && evento.mouse.y >= 480 && evento.mouse.y <= 540)
+				{
+					al_clear_to_color(al_map_rgb(0, 0, 0));
+					al_flip_display();
+					return sair;
+				}
+			}
+		}
+	}
+}
+
+void gerador_bolo_modelo(Pilha &pilha) {
+	int pedido_bolo[4];
+	bool ok;
+	srand(time(NULL));
+	pedido_bolo[0] = rand() % 5; //0 a 4 - base
+	pedido_bolo[1] = rand() % 5 + 5; //5 a 9 - recheio
+	pedido_bolo[2] = rand() % 5 + 10; //10 a 14 - cima
+	pedido_bolo[3] = rand() % 5 + 15; //14 a 19 - cobertura
+	for (int i = 0; i < 4; i++) {
+		pilha.Empilha(pedido_bolo[i], ok);
+	}
+}
+
+void imprime_bolo(Pilha &pilha) {
+	int pedido_bolo[4];
+	bool ok;
+	for (int i = 3; i >= 0; i--) {
+		pilha.Desempilha(pedido_bolo[i], ok);
+	}
+	if (pedido_bolo[0] == 0) {
+		al_draw_bitmap(base1, (TELA_LARGURA / 2) - (al_get_bitmap_width(base1) / 2), 290, 0);
+	}
+	else if (pedido_bolo[0] == 1) {
+		al_draw_bitmap(base2, (TELA_LARGURA / 2) - (al_get_bitmap_width(base2) / 2), 290, 0);
+	}
+	else if (pedido_bolo[0] == 2) {
+		al_draw_bitmap(base3, (TELA_LARGURA / 2) - (al_get_bitmap_width(base3) / 2), 290, 0);
+	}
+	else if (pedido_bolo[0] == 3) {
+		al_draw_bitmap(base4, (TELA_LARGURA / 2) - (al_get_bitmap_width(base4) / 2), 290, 0);
+	}
+	else if (pedido_bolo[0] == 4) {
+		al_draw_bitmap(base5, (TELA_LARGURA / 2) - (al_get_bitmap_width(base5) / 2), 290, 0);
+	}
+
+	//recheio
+	if (pedido_bolo[1] == 5) {
+		al_draw_bitmap(recheio1, (TELA_LARGURA / 2) - (al_get_bitmap_width(recheio1) / 2), 260, 0);
+	}
+	else if (pedido_bolo[1] == 6) {
+		al_draw_bitmap(recheio2, (TELA_LARGURA / 2) - (al_get_bitmap_width(recheio2) / 2), 260, 0);
+	}
+	else if (pedido_bolo[1] == 7) {
+		al_draw_bitmap(recheio3, (TELA_LARGURA / 2) - (al_get_bitmap_width(recheio3) / 2), 260, 0);
+	}
+	else if (pedido_bolo[1] == 8) {
+		al_draw_bitmap(recheio4, (TELA_LARGURA / 2) - (al_get_bitmap_width(recheio4) / 2), 260, 0);
+	}
+	else if (pedido_bolo[1] == 9) {
+		al_draw_bitmap(recheio5, (TELA_LARGURA / 2) - (al_get_bitmap_width(recheio5) / 2), 260, 0);
+	}
+
+	//cima
+
+	if (pedido_bolo[2] == 10) {
+		al_draw_bitmap(cima1, (TELA_LARGURA / 2) - (al_get_bitmap_width(recheio5) / 2), 200, 0);
+	}
+	else if (pedido_bolo[2] == 11) {
+		al_draw_bitmap(cima2, (TELA_LARGURA / 2) - (al_get_bitmap_width(recheio5) / 2), 200, 0);
+	}
+	else if (pedido_bolo[2] == 12) {
+		al_draw_bitmap(cima3, (TELA_LARGURA / 2) - (al_get_bitmap_width(recheio5) / 2), 200, 0);
+	}
+	else if (pedido_bolo[2] == 13) {
+		al_draw_bitmap(cima4, (TELA_LARGURA / 2) - (al_get_bitmap_width(recheio5) / 2), 200, 0);
+	}
+	else if (pedido_bolo[2] == 14) {
+		al_draw_bitmap(cima5, (TELA_LARGURA / 2) - (al_get_bitmap_width(recheio5) / 2), 200, 0);
+	}
+
+	//cobertura
+	if (pedido_bolo[3] == 15) {
+		al_draw_bitmap(cobertura1, (TELA_LARGURA / 2) - (al_get_bitmap_width(cobertura1) / 2), 160, 0);
+	}
+	else if (pedido_bolo[3] == 16) {
+		al_draw_bitmap(cobertura2, (TELA_LARGURA / 2) - (al_get_bitmap_width(cobertura2) / 2), 160, 0);
+	}
+	else if (pedido_bolo[3] == 17) {
+		al_draw_bitmap(cobertura3, (TELA_LARGURA / 2) - (al_get_bitmap_width(cobertura3) / 2), 160, 0);
+	}
+	else if (pedido_bolo[3] == 18) {
+		al_draw_bitmap(cobertura4, (TELA_LARGURA / 2) - (al_get_bitmap_width(cobertura4) / 2), 160, 0);
+	}
+	else if (pedido_bolo[3] == 19) {
+		al_draw_bitmap(cobertura5, (TELA_LARGURA / 2) - (al_get_bitmap_width(cobertura5) / 2), 160, 0);
+	}
+
+	for (int i = 0; i < 4; i++) {
+		pilha.Empilha(pedido_bolo[i], ok);
+	}
+
+	al_flip_display();
+}
+
+void credito(){
+
+	int sair_creditos = 0;
+
+	al_flip_display();
+	al_draw_scaled_bitmap(creditos1, 0, 0, 800, 600, 0, 0, al_get_display_width(janela), al_get_display_height(janela), 0);
+	al_flip_display();
+	al_register_event_source(eventos_fila, al_get_mouse_event_source());
+
+	while (!sair_creditos)
+	{
+		while (!al_is_event_queue_empty(eventos_fila))
+		{
+			ALLEGRO_EVENT evento;
+			al_wait_for_event(eventos_fila, &evento);
+
+			if (evento.type == ALLEGRO_EVENT_MOUSE_AXES)
+			{
+
+				if (evento.mouse.x >= 645 && evento.mouse.x <= 780 && evento.mouse.y >= 540 && evento.mouse.y <= 780)
+				{
+					al_flip_display();
+					al_draw_scaled_bitmap(creditos2, 0, 0, 800, 600, 0, 0, al_get_display_width(janela), al_get_display_height(janela), 0);
+					al_flip_display();
+				}
+			}
+			// Ou se o evento foi um clique do mouse
+			else if (evento.type == ALLEGRO_EVENT_MOUSE_BUTTON_UP)
+			{
+				if (evento.mouse.x >= 645 && evento.mouse.x <= 780 && evento.mouse.y >= 540 && evento.mouse.y <= 780) {
+					al_clear_to_color(al_map_rgb(0, 0, 0));
+					al_flip_display();
+					sair_creditos = 1;
+				}
+			}
+		}
+	}
+}
+
+void instrucao(){
+
+	int sair_instrucoes = 0;
+
+	al_flip_display();
+	al_draw_scaled_bitmap(instrucoes1, 0, 0, 800, 600, 0, 0, al_get_display_width(janela), al_get_display_height(janela), 0);
+	al_flip_display();
+	al_register_event_source(eventos_fila, al_get_mouse_event_source());
+
+	while (!sair_instrucoes)
+	{
+		while (!al_is_event_queue_empty(eventos_fila))
+		{
+			ALLEGRO_EVENT evento;
+			al_wait_for_event(eventos_fila, &evento);
+
+			if (evento.type == ALLEGRO_EVENT_MOUSE_AXES)
+			{
+
+				if (evento.mouse.x >= 645 && evento.mouse.x <= 780 && evento.mouse.y >= 540 && evento.mouse.y <= 780)
+				{
+					al_flip_display();
+					al_draw_scaled_bitmap(instrucoes2, 0, 0, 800, 600, 0, 0, al_get_display_width(janela), al_get_display_height(janela), 0);
+					al_flip_display();
+				}
+			}
+			// Ou se o evento foi um clique do mouse
+			else if (evento.type == ALLEGRO_EVENT_MOUSE_BUTTON_UP)
+			{
+				if (evento.mouse.x >= 645 && evento.mouse.x <= 780 && evento.mouse.y >= 540 && evento.mouse.y <= 780) {
+					al_clear_to_color(al_map_rgb(0, 0, 0));
+					al_flip_display();
+					sair_instrucoes = 1;
+				}
+			}
+		}
+	}
+}
+
+void jogo() {
+	
+///*
+	al_register_event_source(eventos_fila, al_get_timer_event_source(timer));
+	al_register_event_source(timer_fila, al_get_timer_event_source(contador1));
+	//int r = 0, g = 0, b = 0;
+	int seg = 60;
+	Pilha pilha;
+
+	al_start_timer(timer);
+	al_start_timer(contador1);
+	gerador_bolo_modelo(pilha);
+	//imprime_bolo(pilha);
+	//al_flip_display();
+	while (true)
+	{
+		if (!al_is_event_queue_empty(eventos_fila))
+		{
+			ALLEGRO_EVENT evento;
+			al_wait_for_event(eventos_fila, &evento);
+		}
+		if (!al_is_event_queue_empty(timer_fila))
+		{
+			ALLEGRO_EVENT evento;
+			al_wait_for_event(timer_fila, &evento);
+
+			if (evento.type == ALLEGRO_EVENT_TIMER)
+			{
+				seg--;
+			}
+		}
+		//al_clear_to_color(al_map_rgb(r, g, b));
+		al_draw_scaled_bitmap(cenario_vazio, 0, 0, 800, 600, 0, 0, al_get_display_width(janela), al_get_display_height(janela), 0);
+		al_draw_textf(fonte, al_map_rgb(240, 0, 0), 710, 5, ALLEGRO_ALIGN_CENTRE, "%d", seg);
+		imprime_bolo(pilha);
+		//al_flip_display();
+	}
+}
+//*/
+/*
+	while (true) {
+		Pilha pilha;
+		al_flip_display();
+		al_draw_scaled_bitmap(cenario_vazio, 0, 0, 800, 600, 0, 0, al_get_display_width(janela), al_get_display_height(janela), 0);
+		gerador_bolo_modelo(pilha);
+		imprime_bolo(pilha);
+	}
+}
+*/
+
+void destrutores() {
+	al_destroy_bitmap(img_menu);
+	al_destroy_bitmap(img_menu1);
+	al_destroy_bitmap(img_menu2);
+	al_destroy_bitmap(img_menu3);
+	al_destroy_bitmap(img_menu4);
+
+	al_destroy_bitmap(base1);
+	al_destroy_bitmap(base2);
+	al_destroy_bitmap(base3);
+	al_destroy_bitmap(base4);
+	al_destroy_bitmap(base5);
+
+	al_destroy_bitmap(recheio1);
+	al_destroy_bitmap(recheio2);
+	al_destroy_bitmap(recheio3);
+	al_destroy_bitmap(recheio4);
+	al_destroy_bitmap(recheio5);
+
+	al_destroy_bitmap(cima1);
+	al_destroy_bitmap(cima2);
+	al_destroy_bitmap(cima3);
+	al_destroy_bitmap(cima4);
+	al_destroy_bitmap(cima5);
+
+	al_destroy_bitmap(cobertura1);
+	al_destroy_bitmap(cobertura2);
+	al_destroy_bitmap(cobertura3);
+	al_destroy_bitmap(cobertura4);
+	al_destroy_bitmap(cobertura5);
+
+	al_destroy_bitmap(cenario);
+	al_destroy_bitmap(cenario_vazio);
+
+	al_destroy_bitmap(janela_icone);
+
+	al_destroy_timer(timer);//
+	al_destroy_timer(contador1);
+	al_destroy_timer(contador2);
+	al_destroy_timer(contador3);
+	al_destroy_timer(contador4);
+
+	al_destroy_bitmap(creditos1);
+	al_destroy_bitmap(creditos2);
+	al_destroy_bitmap(instrucoes1);
+	al_destroy_bitmap(instrucoes2);
+
+	al_destroy_display(janela);//
+	al_destroy_event_queue(eventos_fila);//
+}

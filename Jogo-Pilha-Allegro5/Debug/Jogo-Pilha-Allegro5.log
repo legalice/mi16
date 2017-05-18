@@ -1,0 +1,4 @@
+﻿  main.cpp
+c:\users\lordr\desktop\jogo-pilha-allegro5\jogo-pilha-allegro5\main.cpp(595): warning C4715: 'menu': nem todos os caminhos de controle retornam um valor
+  Jogo-Pilha-Allegro5.vcxproj -> C:\Users\lordr\Desktop\Jogo-Pilha-Allegro5\Debug\Jogo-Pilha-Allegro5.exe
+  Jogo-Pilha-Allegro5.vcxproj -> C:\Users\lordr\Desktop\Jogo-Pilha-Allegro5\Debug\Jogo-Pilha-Allegro5.pdb (Partial PDB)
